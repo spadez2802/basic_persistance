@@ -45,6 +45,46 @@ def remove_registry():
     except Exception as e:
         print(f"[Registry Run Key]: Lỗi khi gỡ - {e}")
 
+def check_registry_hklm():
+    key_path = r"Software\Microsoft\Windows\CurrentVersion\Run"
+    key_name = "DemoPersistenceApp_HKLM"
+    try:
+        key = winreg.OpenKey(winreg.HKEY_LOCAL_MACHINE, key_path, 0, winreg.KEY_READ | winreg.KEY_WOW64_64KEY)
+        winreg.QueryValueEx(key, key_name)
+        winreg.CloseKey(key)
+        return True
+    except FileNotFoundError:
+        try:
+            # Fallback 32bit if needed
+            key = winreg.OpenKey(winreg.HKEY_LOCAL_MACHINE, key_path, 0, winreg.KEY_READ | winreg.KEY_WOW64_32KEY)
+            winreg.QueryValueEx(key, key_name)
+            winreg.CloseKey(key)
+            return True
+        except:
+            return False
+    except Exception:
+        return False
+
+def remove_registry_hklm():
+    if not check_registry_hklm():
+        print("[Registry Run Key HKLM]: Chưa được cài đặt (Không có gì để gỡ).")
+        return
+    key_path = r"Software\Microsoft\Windows\CurrentVersion\Run"
+    key_name = "DemoPersistenceApp_HKLM"
+    try:
+        key = winreg.OpenKey(winreg.HKEY_LOCAL_MACHINE, key_path, 0, winreg.KEY_SET_VALUE | winreg.KEY_WOW64_64KEY)
+        winreg.DeleteValue(key, key_name)
+        winreg.CloseKey(key)
+        print("[Registry Run Key HKLM]: Đã gỡ bỏ thành công.")
+    except Exception as e:
+        try:
+            key = winreg.OpenKey(winreg.HKEY_LOCAL_MACHINE, key_path, 0, winreg.KEY_SET_VALUE | winreg.KEY_WOW64_32KEY)
+            winreg.DeleteValue(key, key_name)
+            winreg.CloseKey(key)
+            print("[Registry Run Key HKLM]: Đã gỡ bỏ thành công.")
+        except Exception as e2:
+            print(f"[Registry Run Key HKLM]: Lỗi khi gỡ - {e2}")
+
 def check_startup():
     startup_folder = os.path.join(os.environ['APPDATA'], r'Microsoft\Windows\Start Menu\Programs\Startup')
     shortcut_path = os.path.join(startup_folder, 'DemoPersistenceApp.lnk')
@@ -110,8 +150,9 @@ def remove_service():
 
 def verify_all():
     print("--- Trạng thái Persistence ---")
-    print(f"1. Registry Run Key : {'[CÓ]' if check_registry() else '[TRỐNG]'}")
-    print(f"2. Startup Folder   : {'[CÓ]' if check_startup() else '[TRỐNG]'}")
+    print(f"1. Registry Run Key (HKCU): {'[CÓ]' if check_registry() else '[TRỐNG]'}")
+    print(f"   Registry Run Key (HKLM): {'[CÓ]' if check_registry_hklm() else '[TRỐNG]'}")
+    print(f"2. Startup Folder         : {'[CÓ]' if check_startup() else '[TRỐNG]'}")
     print(f"3. Scheduled Task   : {'[CÓ]' if check_schtasks() else '[TRỐNG]'}")
     print(f"4. Windows Service  : {'[CÓ]' if check_service() else '[TRỐNG]'}")
     print("------------------------------")
@@ -121,26 +162,29 @@ def main():
     
     while True:
         print("\n=== MENU DỌN DẸP (CLEANUP) ===")
-        print("1. Gỡ Registry Run Key")
-        print("2. Gỡ Startup Folder")
-        print("3. Gỡ Scheduled Task")
-        print("4. Gỡ Windows Service")
-        print("5. Kiểm tra tất cả (Verify All)")
-        print("6. Thoát")
+        print("1. Gỡ Registry Run Key (HKCU)")
+        print("2. Gỡ Registry Run Key (HKLM)")
+        print("3. Gỡ Startup Folder")
+        print("4. Gỡ Scheduled Task")
+        print("5. Gỡ Windows Service")
+        print("6. Kiểm tra tất cả (Verify All)")
+        print("7. Thoát")
         
-        choice = input("Vui lòng chọn (1-6): ")
+        choice = input("Vui lòng chọn (1-7): ")
         
         if choice == '1':
             remove_registry()
         elif choice == '2':
-            remove_startup()
+            remove_registry_hklm()
         elif choice == '3':
-            remove_schtasks()
+            remove_startup()
         elif choice == '4':
-            remove_service()
+            remove_schtasks()
         elif choice == '5':
-            verify_all()
+            remove_service()
         elif choice == '6':
+            verify_all()
+        elif choice == '7':
             break
         else:
             print("Lựa chọn không hợp lệ.")
