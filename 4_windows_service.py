@@ -28,7 +28,7 @@ def main():
     try:
         # Sử dụng pywin32 module tích hợp trong app.exe để cài đặt service
         print("Đang cài đặt service...")
-        subprocess.run([app_path, "install", "--startup=auto"], check=True)
+        subprocess.run([app_path, "--startup=auto", "install"], check=True)
         
         print("Đang khởi động service...")
         subprocess.run([app_path, "start"], check=True)
