@@ -62,7 +62,7 @@ def main():
         consumer_class = wmi.Get("CommandLineEventConsumer")
         consumer_instance = consumer_class.SpawnInstance_()
         consumer_instance.Name = consumer_name
-        consumer_instance.CommandLineTemplate = app_path
+        consumer_instance.CommandLineTemplate = f'"{app_path}" --source WMI'
         consumer_instance.RunInteractively = False
         consumer_path = consumer_instance.Put_()
         print(f"✅ Event Consumer tạo thành công: {consumer_path}")
