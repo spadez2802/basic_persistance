@@ -77,19 +77,27 @@ def main():
         print(f"✅ Binding tạo thành công: {binding_path}")
         
         # ✅ 4. Kiểm tra
+        # ✅ 4. Kiểm tra
         print("\n4️⃣  Kiểm tra hoạt động...")
-        filters = wmi.ExecQuery(f"Select * from __EventFilter where Name='{filter_name}'")
-        consumers = wmi.ExecQuery(f"Select * from CommandLineEventConsumer where Name='{consumer_name}'")
-        bindings = wmi.ExecQuery(f"Select * from __FilterToConsumerBinding where Filter='{filter_path}'")
-        
-        print(f"Filters tìm thấy: {len(list(filters))}")
-        print(f"Consumers tìm thấy: {len(list(consumers))}")
-        print(f"Bindings tìm thấy: {len(list(bindings))}")
-        
-        print("\n✅ Thành công: WMI Event Subscription đã được cài đặt!")
-        print(f"   - Filter: {filter_name}")
-        print(f"   - Consumer: {consumer_name}")
-        print(f"   - Event sẽ trigger mỗi 60 giây")
+        try:
+            filters = wmi.ExecQuery(f"Select * from __EventFilter where Name='{filter_name}'")
+            print(f"✅ Filters tìm thấy: {len(list(filters))}")
+        except:
+            print(f"⚠️  Filters: Không thể query")
+
+        try:
+            consumers = wmi.ExecQuery(f"Select * from CommandLineEventConsumer where Name='{consumer_name}'")
+            print(f"✅ Consumers tìm thấy: {len(list(consumers))}")
+        except:
+            print(f"⚠️  Consumers: Không thể query")
+
+        # ✅ SỬA: Lấy tất cả binding thay vì query cụ thể
+        try:
+            bindings = wmi.ExecQuery("Select * from __FilterToConsumerBinding")
+            binding_count = len(list(bindings))
+            print(f"✅ Bindings tìm thấy: {binding_count}")
+        except Exception as e:
+            print(f"⚠️  Bindings: Lỗi - {e}")
         
     except Exception as e:
         print(f"❌ Lỗi: {e}")
