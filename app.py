@@ -21,15 +21,20 @@ def is_session_0():
     return os.environ.get('USERNAME', '').upper() == 'SYSTEM'
 
 def write_log(source):
-    log_path = r"C:\Users\hehe123\Desktop\run_log.txt"
-    now_str = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    username = getpass.getuser()
-    
-    log_msg = f"{now_str} | Phương thức: {source} | User: {username}\n"
-    
     try:
-        with open(log_path, "a", encoding="utf-8") as f:
-            f.write(log_msg)
+        log_path = r"C:\Users\hehe123\Desktop\run_log.txt"
+        fallback_path = r"C:\Users\Public\Desktop\run_log.txt"
+        now_str = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        username = os.environ.get('USERNAME', 'SYSTEM')
+        
+        log_msg = f"{now_str} | Phương thức: {source} | User: {username}\n"
+        
+        try:
+            with open(log_path, "a", encoding="utf-8") as f:
+                f.write(log_msg)
+        except:
+            with open(fallback_path, "a", encoding="utf-8") as f:
+                f.write(log_msg)
     except Exception as e:
         pass
 
