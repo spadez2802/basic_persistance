@@ -36,7 +36,7 @@ def main():
     try:
         # ✅ Kết nối tới WMI
         print("Kết nối tới WMI...")
-        wmi = win32com.client.GetObject("winmgmts:")
+        wmi = win32com.client.GetObject("winmgmts:root\\subscription")
         
         # ✅ 1. Tạo Event Filter (lắng nghe sự kiện)
         print("\n1️⃣  Tạo Event Filter...")
