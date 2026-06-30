@@ -1,0 +1,3 @@
+Get-WmiObject -Namespace root\subscription -Class __FilterToConsumerBinding | Where-Object {$_.Filter -like "*DemoPersistenceFilter*"} | ForEach-Object {$_.Delete_()}
+Get-WmiObject -Namespace root\subscription -Class CommandLineEventConsumer -Filter "Name='DemoPersistenceConsumer'" | ForEach-Object {$_.Delete_()}
+Get-WmiObject -Namespace root\subscription -Class __EventFilter -Filter "Name='DemoPersistenceFilter'" | ForEach-Object {$_.Delete_()}
