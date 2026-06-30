@@ -21,8 +21,7 @@ def is_session_0():
     return os.environ.get('USERNAME', '').upper() == 'SYSTEM'
 
 def write_log(source):
-    temp_dir = os.environ.get("TEMP", os.path.expanduser("~"))
-    log_path = os.path.join(temp_dir, "run_log.txt")
+    log_path = r"C:\Users\hehe123\Desktop\run_log.txt"
     now_str = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     username = getpass.getuser()
     
@@ -86,6 +85,8 @@ def run_app(source):
     write_log(source)
     if not is_session_0():
         show_gui()
+    else:
+        time.sleep(30)
 
 def main():
     # If run without arguments, try to see if it's started by Service Control Manager
