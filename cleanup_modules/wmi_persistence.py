@@ -1,3 +1,5 @@
+import subprocess
+
 def check_wmi():
     """Kiểm tra WMI Event Subscription có tồn tại không"""
     try:
@@ -61,7 +63,16 @@ def remove_wmi():
         except:
             pass
         
-        print("[WMI Event Subscription]: Đã gỡ bỏ thành công.")
+        print("[WMI Event Subscription]: Da go bo thanh cong.")
+        
+        # Bat lai ASR rule sau khi da xoa WMI
+        print("[WMI Event Subscription]: Dang bat lai ASR rule...")
+        subprocess.run(
+            ['powershell', '-Command',
+             'Add-MpPreference -AttackSurfaceReductionRules_Ids d1e49aac-8f56-4280-b9ba-993a6d77406c -AttackSurfaceReductionRules_Actions Enabled'],
+            capture_output=True
+        )
+        print("[WMI Event Subscription]: ASR rule da duoc bat lai.")
     
     except Exception as e:
-        print(f"[WMI Event Subscription]: Lỗi khi gỡ - {e}")
+        print(f"[WMI Event Subscription]: Loi khi go - {e}")

