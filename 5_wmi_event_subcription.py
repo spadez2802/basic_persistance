@@ -41,8 +41,8 @@ def main():
         # ✅ 1. Tạo Event Filter (lắng nghe sự kiện)
         print("\n1️⃣  Tạo Event Filter...")
         filter_name = "DemoPersistenceFilter"
-        filter_query = 'SELECT * FROM __InstanceModificationEvent WITHIN 60 WHERE TargetInstance ISA "Win32_PerfFormattedData_PerfOS_System"'
-        # Mỗi 60 giây, system metrics thay đổi → trigger event
+        filter_query = 'SELECT * FROM __InstanceModificationEvent WITHIN 15 WHERE TargetInstance ISA "Win32_LocalTime"'
+        # Win32_LocalTime thay đổi mỗi giây → với WITHIN 15 sẽ fire mỗi 15 giây, đáng tin trên VM
         
         # Xóa filter cũ nếu tồn tại
         wmi.ExecQuery(f"Select * from __EventFilter where Name='{filter_name}'")

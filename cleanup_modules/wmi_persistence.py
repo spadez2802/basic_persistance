@@ -13,6 +13,7 @@ def check_wmi():
     except:
         return False
 
+
 def remove_wmi():
     """Gỡ bỏ WMI Event Subscription"""
     if not check_wmi():
@@ -32,11 +33,13 @@ def remove_wmi():
         wmi = win32com.client.GetObject("winmgmts:root\\subscription")
         
         # ✅ Bước 1: Xóa Binding trước
-        print("[WMI Event Subscription]: Đang xóa Binding...")
+        print("[WMI Event Subscription]: Dang xoa Binding...")
         try:
-            bindings = wmi.ExecQuery(f"Select * from __FilterToConsumerBinding where Filter like '%{filter_name}%'")
+            # Filter là kiểu REF, không dùng LIKE được — lấy tất cả rồi lọc thủ công
+            bindings = wmi.ExecQuery("Select * from __FilterToConsumerBinding")
             for binding in bindings:
-                binding.Delete_()
+                if filter_name in str(binding.Filter):
+                    binding.Delete_()
         except:
             pass
         
