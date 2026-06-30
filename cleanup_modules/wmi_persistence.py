@@ -29,7 +29,7 @@ def remove_wmi():
     consumer_name = "DemoPersistenceConsumer"
     
     try:
-        wmi = win32com.client.GetObject("winmgmts:")
+        wmi = win32com.client.GetObject("winmgmts:root\\subscription")
         
         # ✅ Bước 1: Xóa Binding trước
         print("[WMI Event Subscription]: Đang xóa Binding...")
