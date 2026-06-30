@@ -7,7 +7,7 @@ def check_wmi():
     
     filter_name = "DemoPersistenceFilter"
     try:
-        wmi = win32com.client.GetObject("winmgmts:")
+        wmi = win32com.client.GetObject("winmgmts:root\\subscription")
         filters = wmi.ExecQuery(f"Select * from __EventFilter where Name='{filter_name}'")
         return len(list(filters)) > 0
     except:
