@@ -38,8 +38,85 @@ def write_log(source):
     except Exception as e:
         pass
 
+def launch_in_active_session():
+    """Re-launch app.exe vào session của user đang đăng nhập (Session 1/2) từ Session 0"""
+    try:
+        import ctypes.wintypes
+
+        STARTF_USESHOWWINDOW = 0x00000001
+        CREATE_UNICODE_ENVIRONMENT = 0x00000400
+        SW_SHOW = 5
+        TOKEN_ALL_ACCESS = 0xF01FF
+        SecurityImpersonation = 2
+        TokenPrimary = 1
+
+        class STARTUPINFO(ctypes.Structure):
+            _fields_ = [
+                ('cb', ctypes.wintypes.DWORD), ('lpReserved', ctypes.wintypes.LPWSTR),
+                ('lpDesktop', ctypes.wintypes.LPWSTR), ('lpTitle', ctypes.wintypes.LPWSTR),
+                ('dwX', ctypes.wintypes.DWORD), ('dwY', ctypes.wintypes.DWORD),
+                ('dwXSize', ctypes.wintypes.DWORD), ('dwYSize', ctypes.wintypes.DWORD),
+                ('dwXCountChars', ctypes.wintypes.DWORD), ('dwYCountChars', ctypes.wintypes.DWORD),
+                ('dwFillAttribute', ctypes.wintypes.DWORD), ('dwFlags', ctypes.wintypes.DWORD),
+                ('wShowWindow', ctypes.wintypes.WORD), ('cbReserved2', ctypes.wintypes.WORD),
+                ('lpReserved2', ctypes.wintypes.LPBYTE),
+                ('hStdInput', ctypes.wintypes.HANDLE), ('hStdOutput', ctypes.wintypes.HANDLE),
+                ('hStdError', ctypes.wintypes.HANDLE),
+            ]
+
+        class PROCESS_INFORMATION(ctypes.Structure):
+            _fields_ = [
+                ('hProcess', ctypes.wintypes.HANDLE), ('hThread', ctypes.wintypes.HANDLE),
+                ('dwProcessId', ctypes.wintypes.DWORD), ('dwThreadId', ctypes.wintypes.DWORD),
+            ]
+
+        # Lấy session ID của console user đang đăng nhập (Session 1 hoặc 2)
+        active_session = ctypes.windll.kernel32.WTSGetActiveConsoleSessionId()
+
+        # Lấy token của user trong session đó
+        h_token = ctypes.wintypes.HANDLE()
+        ctypes.windll.wtsapi32.WTSQueryUserToken(active_session, ctypes.byref(h_token))
+
+        # Duplicate token thành Primary token
+        h_dup = ctypes.wintypes.HANDLE()
+        ctypes.windll.advapi32.DuplicateTokenEx(
+            h_token, TOKEN_ALL_ACCESS, None,
+            SecurityImpersonation, TokenPrimary, ctypes.byref(h_dup)
+        )
+
+        # Tạo environment block cho user
+        lp_env = ctypes.c_void_p()
+        ctypes.windll.userenv.CreateEnvironmentBlock(ctypes.byref(lp_env), h_dup, False)
+
+        # Đường dẫn exe hiện tại
+        exe_path = sys.argv[0]
+        cmd = f'"{exe_path}" --source WMI'
+
+        si = STARTUPINFO()
+        si.cb = ctypes.sizeof(si)
+        si.lpDesktop = "winsta0\\default"
+        si.dwFlags = STARTF_USESHOWWINDOW
+        si.wShowWindow = SW_SHOW
+        pi = PROCESS_INFORMATION()
+
+        ctypes.windll.advapi32.CreateProcessAsUserW(
+            h_dup, None, cmd, None, None, False,
+            CREATE_UNICODE_ENVIRONMENT, lp_env, None,
+            ctypes.byref(si), ctypes.byref(pi)
+        )
+
+        ctypes.windll.userenv.DestroyEnvironmentBlock(lp_env)
+        ctypes.windll.kernel32.CloseHandle(h_token)
+        ctypes.windll.kernel32.CloseHandle(h_dup)
+        if pi.hProcess: ctypes.windll.kernel32.CloseHandle(pi.hProcess)
+        if pi.hThread:  ctypes.windll.kernel32.CloseHandle(pi.hThread)
+    except Exception:
+        pass
+
+
 def show_gui():
     import tkinter as tk
+
     
     root = tk.Tk()
     root.title("Thông báo")
@@ -88,10 +165,12 @@ class AppService(win32serviceutil.ServiceFramework):
 
 def run_app(source):
     write_log(source)
-    if not is_session_0():
-        show_gui()
+    if is_session_0():
+        # Đang ở Session 0 (WMI/Service) → re-launch vào session của user để hiện GUI
+        launch_in_active_session()
     else:
-        time.sleep(30)
+        # Đang ở Session 1/2 (user session) → hiện GUI bình thường
+        show_gui()
 
 def main():
     # If run without arguments, try to see if it's started by Service Control Manager
